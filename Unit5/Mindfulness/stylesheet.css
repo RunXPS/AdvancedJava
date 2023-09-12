@@ -1,0 +1,27 @@
+/*
+Customizable objects:
+ - .root
+ - Labels
+    o newTaskNameLabel
+    o dueDatePickerLabel
+ - TextFields
+    o newTaskName
+ - Buttons
+    o createTask
+ - Toolbars
+    o toolbar
+*/
+.label {
+    -fx-font-family: serif;
+    -fx-font-weight: bold;
+    -fx-text-fill: #293630;
+}
+.button {
+   -fx-font-family: serif;
+   -fx-font-weight: bold;
+   -fx-text-fill: #dad7cd;
+   -fx-background-color: #3a5a40;
+}
+.root {
+   -fx-background: #a3b18a;
+}

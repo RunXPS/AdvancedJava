@@ -1,0 +1,172 @@
+import javafx.application.Application;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
+public class CreateGUI extends Application {
+    private Label timer;
+    private Label mineCounter;
+    private Button reset;
+    private HBox controlBar;
+    private BorderPane root;
+
+    public static void displayField(int size, int[][] field) {
+        for (int i = 0; i < size; i++) {
+            System.out.print("| ");
+            for (int j = 0; j < size; j++) {
+                if (field[i][j] == -1) {
+                    System.out.print("X ");
+                } else {
+                    System.out.print(field[i][j] + " ");
+                }
+            }
+            System.out.println("|");
+        }
+    }
+
+    private int[][] generateField(int size, int mines) {
+        int[][] field = new int[size][size];
+        for (int i = 0; i < mines; i++) {
+            int x = (int) (Math.random() * size), y = (int) (Math.random() * size);
+            if (field[x][y] == -1) {
+                i--;
+            } else {
+                field[x][y] = -1;
+                int k = x - 1, l = y - 1;
+                for (; k <= x + 1; k++) {
+                    // if row is an end
+                    if (k < size && k >= 0) {
+                        for (l = y - 1; l <= y + 1; l++) {
+                            // if column is an end
+                            if ((l < size && l >= 0)) {
+                                if (field[k][l] != -1) {
+                                    field[k][l] += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return field;
+    }
+
+    private GridPane generateGrid(int size) {
+        int mines = 2 * (size - 3);
+        mineCounter.setText(String.valueOf(mines));
+        int[][] intField = generateField(size, mines);
+        // Grid
+        GridPane visualField = new GridPane();
+        visualField.setAlignment(Pos.CENTER);
+        for (int i = 0; i < size * size; i++) {
+            final int tmp = i;
+            Button square = new Button("#");
+            square.setPrefHeight(30);
+            square.setPrefWidth(30);
+            // Bombs
+            if (intField[i / size][i % size] == -1) {
+                square.setOnMouseClicked(e -> {
+                    if (e.getButton() == MouseButton.PRIMARY && square.getText().equals("#")) {
+                        int test = 0;
+                        for (Node node : visualField.getChildren()) {
+                            Button btn = (Button) node;
+                            btn.setText(Integer.toString(intField[test / size][test % size]));
+                            if (intField[test / size][test % size] == -1) {
+                                btn.setText("X");
+                                btn.setStyle("-fx-background-color: #ff0000");
+                            }
+                            test++;
+                        }
+                    } else if (square.getText().equals("#")) {
+                        square.setText("|>");
+                    } else if (square.getText().equals("|>")) {
+                        square.setText("#");
+                    }
+
+                });
+                // Non-Bombs
+            } else {
+                square.setOnMouseClicked(e -> {
+                    if (e.getButton() == MouseButton.PRIMARY && square.getText().equals("#")) {
+                        square.setText(Integer.toString(intField[tmp / size][tmp % size]));
+                    } else if (square.getText().equals("#")) {
+                        square.setText("|>");
+                    } else if (square.getText().equals("|>")) {
+                        square.setText("#");
+                    }
+                });
+            }
+            visualField.add(square, i / size, i % size);
+        }
+        return visualField;
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        timer = new Label("00:00:00");
+        mineCounter = new Label("70");
+        reset = new Button("Reset");
+        controlBar = new HBox(mineCounter, timer, reset);
+
+        final VBox board = new VBox();
+        board.setAlignment(Pos.CENTER);
+        int[] size = { 4 };
+        GridPane visualField = generateGrid(size[0]);
+        MenuButton gridSize = new MenuButton("Grid Size", null);
+        for (int i = 4; i < 15; i++) {
+            final int tmp = i;
+            MenuItem item = new MenuItem(Integer.toString(tmp));
+            item.setOnAction(e -> {
+                size[0] = tmp;
+                final GridPane visualField2 = generateGrid(size[0]);
+                board.getChildren().remove(1);
+                board.getChildren().add(visualField2);
+            });
+            gridSize.getItems().add(item);
+
+        }
+
+        timer.getStyleClass().add("counter");
+        mineCounter.getStyleClass().add("counter");
+        timer.setPrefSize(90, 14);
+        mineCounter.setPrefSize(35, 12);
+        timer.setAlignment(Pos.CENTER);
+        mineCounter.setAlignment(Pos.CENTER);
+
+        controlBar.getStyleClass().add("controlBar");
+        controlBar.setAlignment(Pos.CENTER);
+        controlBar.setSpacing(150);
+        controlBar.setPrefHeight(60);
+
+        reset.setOnAction(e -> {
+            final GridPane visualField2 = generateGrid(size[0]);
+            board.getChildren().remove(1);
+            board.getChildren().add(visualField2);
+        });
+
+        board.getChildren().addAll(gridSize, visualField);
+
+        root = new BorderPane(board, controlBar, null, null, null);
+        Scene scene = new Scene(root, 500, 560);
+        scene.getStylesheets().add("stylesheet.css");
+
+        primaryStage.setTitle("Minesweeper v1");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+
+    }
+}
